@@ -1,0 +1,47 @@
+import React from 'react';
+
+// Original flat illustrations. Shape, detail and colour stay consistent across cards.
+export const SYMBOLS=[
+  ['Chai','#c66b37'],['Patang','#e35377'],['Cricket bat','#c99142'],['Auto','#2b9a72'],
+  ['Jalebi','#e68a2e'],['Umbrella','#7b63bd'],['Mango','#ecb22d'],['Chappal','#399db6'],
+  ['Dhol','#c86468'],['Chashma','#5578b1'],['Rocket','#d85862'],['Cat','#d49c50'],
+  ['Fish','#479eb8'],['Flower','#dc7295'],['Moon','#d5ac3e'],['Lightning','#e1ae25'],
+  ['Pizza','#d98a42'],['Crown','#d4a938'],['Bell','#c6a04b'],['Key','#54a48d'],
+  ['Camera','#7e6fb0'],['Ice cream','#d17fa9'],['Leaf','#61964f'],['Star','#df9e3f'],
+  ['Cloud','#639fc0'],['Train','#4b8b8d'],['Cycle','#cf6175'],['Heart','#d95a6c'],
+  ['Sun','#e6a435'],['Dice','#7585be'],['Balloon','#8b75bc'],
+];
+const drawings=[
+  <><path d="M13 25h34v18c0 11-34 11-34 0z"/><path d="M47 28h5c12 0 9 16-5 16M9 55h43M23 16c-7-6 6-7 0-13M36 16c-7-6 6-7 0-13" fill="none"/></>,
+  <><path d="m32 4 22 23-22 24L10 27z"/><path d="m32 4 0 47M10 27h44M32 51c-10 10 9 9 3 18" fill="none"/><path d="m32 56-7-2 2 7z"/></>,
+  <><g transform="rotate(30 32 32)"><path d="M27 5h10v22H27z"/><path d="M22 25h20v32c0 5-20 5-20 0z"/><path d="M28 34h8M28 40h8" fill="none"/></g><circle cx="51" cy="52" r="8" fill="#f8ead3"/><path d="m47 47 8 10" fill="none"/></>,
+  <><path d="M8 29h45l6 12v12H5V37z"/><path d="M12 29V13h33l8 16z" fill="#f3d064"/><path d="M20 19h19v10H20z" fill="#fff9e7"/><circle cx="17" cy="53" r="7" fill="#223849"/><circle cx="49" cy="53" r="7" fill="#223849"/><path d="M34 35v12M12 37h10" fill="none"/></>,
+  <><path d="M32 6c-23 0-28 34-4 34 23 0 27-25 8-25-23 0-19 38 4 38 24 0 17-35-4-27C10 36 16 62 35 59" fill="none" strokeWidth="8"/><path d="M32 6c-23 0-28 34-4 34 23 0 27-25 8-25-23 0-19 38 4 38 24 0 17-35-4-27C10 36 16 62 35 59" fill="none" stroke="#ffc95b" strokeWidth="3"/></>,
+  <><path d="M5 32C8 0 56 0 59 32c-9-7-18-7-27 0-9-7-18-7-27 0z"/><path d="M32 7v44c0 13 18 11 18 1M32 7V3" fill="none"/></>,
+  <><path d="M33 13c-15-5-30 9-26 26 3 21 30 30 44 8 11-18-4-35-18-34z"/><path d="M34 14c-6-8 0-13 7-13M37 8c7-7 17-3 17 4-7 3-12 1-17-4" fill="#6caa66"/><path d="M16 33c-3 7 1 12 5 14" stroke="#fff1ba" fill="none"/></>,
+  <><g transform="rotate(22 32 32)"><path d="M18 7c19-14 31 6 28 23l-5 25c-1 8-27 8-27-1V27c0-9 0-14 4-20z"/><path d="m17 26 13 10 14-10M30 36v12" fill="none" stroke="#fff2d7" strokeWidth="5"/></g></>,
+  <><path d="M14 14q18-9 36 0v39q-18 9-36 0z"/><ellipse cx="14" cy="34" rx="8" ry="20" fill="#ffe2a5"/><path d="m24 14 11 40 11-39M24 54l11-40 11 39M12 10 5 3M51 10l9-8" fill="none"/></>,
+  <><circle cx="17" cy="38" r="13" fill="#bfdeed"/><circle cx="48" cy="38" r="13" fill="#bfdeed"/><path d="M30 35q3-6 5 0M4 37l3-21M61 37l-3-21" fill="none" strokeWidth="5"/></>,
+  <><path d="M24 37 11 48l2-21 14-10M40 37l13 11-2-21-14-10"/><path d="M32 3c19 14 15 31 8 43H24C17 34 13 17 32 3z" fill="#f8e9d0"/><circle cx="32" cy="25" r="7"/><path d="m25 48 7 15 7-15" fill="#efb748"/></>,
+  <><path d="m9 30 1-22 18 12h9L54 8l1 25c10 28-56 33-46-3z"/><path d="M21 33v3M43 33v3m-14 7 3 3 4-3M5 40l12 2M3 49l14-3M59 40l-12 2M61 49l-14-3" fill="none"/></>,
+  <><path d="M47 18c-13-17-36-3-42 14 9 20 30 29 42 13l14 9V11z"/><circle cx="18" cy="30" r="3" fill="#fff9e8"/><path d="m29 20 5 12-5 12" fill="none"/></>,
+  <><path d="M32 55V33m0 10 16-3M32 51l-14-9" fill="none" stroke="#4c946f" strokeWidth="6"/><path d="M24 19C7 5 4 29 19 31 6 45 30 53 32 37c14 17 29-6 13-11 19-11-2-28-10-12-2-19-21-10-11 5z"/><circle cx="32" cy="25" r="8" fill="#f5c952"/></>,
+  <><path d="M43 4C4 1-5 49 28 59c17 5 29-3 32-17C30 53 17 17 43 4z"/><circle cx="43" cy="21" r="2" stroke="none"/><path d="m51 9 2 5 5 2-5 2-2 5-2-5-5-2 5-2z" stroke="none"/></>,
+  <path d="M35 3 10 37h19l-3 26 27-37H34z"/>,
+  <><path d="M9 12q23-14 46 0L33 60z"/><path d="M9 12q23-14 46 0l-3 8q-21-12-40 0z" fill="#d5a259"/><circle cx="27" cy="27" r="5" fill="#c35252"/><circle cx="39" cy="35" r="4" fill="#c35252"/><path d="m29 43 4 3" fill="none"/></>,
+  <><path d="m7 15 13 13L32 8l12 20 13-13-6 39H13z"/><path d="M14 45h36" fill="none"/><circle cx="32" cy="36" r="4" fill="#fff8da"/></>,
+  <><path d="M9 46c10-9 5-29 17-32V9c0-8 12-8 12 0v5c12 3 7 23 17 32z"/><path d="M25 53c2 9 13 9 15 0M16 39h31" fill="none"/></>,
+  <><g transform="rotate(35 32 32)"><circle cx="30" cy="18" r="14"/><circle cx="30" cy="18" r="5" fill="#fff8e7"/><path d="M25 32v29h15v-8h-7v-7h7v-8h-7v-6z"/></g></>,
+  <><path d="M5 19h14l5-8h17l5 8h13v36H5z"/><circle cx="33" cy="36" r="13" fill="#fff2d6"/><circle cx="33" cy="36" r="7"/><path d="M10 25h7" fill="none"/></>,
+  <><path d="m17 32 15 31 15-31z" fill="#d5a868"/><path d="M15 32c-9-13 3-18 6-18C19-3 45-3 43 14c15 0 17 18 4 18z"/><path d="m27 42 10 8M39 41l-11 9" fill="none"/></>,
+  <><path d="M54 5C18-3 2 19 12 41 38 58 61 36 54 5z"/><path d="m6 58 38-38M24 40V25M24 40h15" fill="none"/></>,
+  <><path d="m32 3 9 18 20 3-14 15 3 21-18-10-18 10 3-21L3 24l20-3z"/><path d="M24 30v4M40 30v4M27 39q5 5 10 0" fill="none"/></>,
+  <><path d="M15 48c-19 0-15-26 0-25C9 4 38-3 43 18c24-4 24 30 4 30z"/><path d="M20 55v5M33 55v5M46 55v5" fill="none"/></>,
+  <><path d="M14 7h36v43H14z"/><path d="M20 14h24v16H20z" fill="#dfeddf"/><circle cx="23" cy="40" r="4" fill="#f6c85b"/><circle cx="42" cy="40" r="4" fill="#f6c85b"/><path d="m21 50-9 12M43 50l9 12M16 58h32" fill="none"/></>,
+  <><circle cx="14" cy="43" r="11" fill="none"/><circle cx="51" cy="43" r="11" fill="none"/><path d="m14 43 12-25 13 25H14l22-17h8l7 17M22 18h11M40 13h9l-5 13" fill="none" strokeWidth="4"/></>,
+  <><path d="M32 59C-13 29 10-9 32 16 54-9 77 29 32 59z"/><path d="M17 22c-5 0-6 6-4 9" fill="none" stroke="#ffe7d0"/></>,
+  <><circle cx="32" cy="32" r="17"/><path d="M32 2v6M32 56v6M2 32h6M56 32h6M10 10l5 5M49 49l5 5M10 54l5-5M49 15l5-5M26 28v3M38 28v3M27 37q5 5 10 0" fill="none"/></>,
+  <><rect x="8" y="8" width="48" height="48" rx="10"/><g fill="#fff6dc" stroke="none"><circle cx="20" cy="20" r="4"/><circle cx="44" cy="20" r="4"/><circle cx="32" cy="32" r="4"/><circle cx="20" cy="44" r="4"/><circle cx="44" cy="44" r="4"/></g></>,
+  <><ellipse cx="32" cy="23" rx="20" ry="22"/><path d="m32 45-5 7h10z"/><path d="M32 52c-12 10 10 6 0 15" fill="none"/><path d="M21 13c-5 5-4 8-4 9" fill="none" stroke="#fff1e5"/></>,
+];
+export function SpotSymbol({id,className='',style={}}){const [name,color]=SYMBOLS[id]||SYMBOLS[0];return <svg className={`spot-symbol ${className}`} style={style} viewBox="0 0 64 68" role="img" aria-label={name} fill={color} stroke="#21384a" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">{drawings[id]}</svg>;}

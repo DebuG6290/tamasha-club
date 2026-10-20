@@ -4,6 +4,7 @@ import { App } from "./App.jsx";
 import "./styles.css";
 import "./party.css";
 import "./arcade.css";
+import "./spot.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

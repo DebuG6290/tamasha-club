@@ -2,9 +2,9 @@
 
 Cartoon party games for one shared screen and everyone's phones. Open the host screen on a laptop connected to a projector or TV; players scan its QR code or enter the four-letter room code. No app download or accounts.
 
-Choose **Duck Pop** (tilt/touch aiming), **Gully Grand Prix** (three-lane racing), **Kaun Feku?** (spoken bluffing), or **Same Soch** (clues and spectrum guessing). Individual play is the default. Same Soch also has optional pair scoring. [Party rules](docs/PARTY_GAMES.md) · [Shooting, racing, motion controls and tournaments](docs/MOTION_AND_TOURNAMENTS.md).
+Choose **Ek Jaisa!** (find the one common symbol), **Duck Pop** (tilt/touch aiming), **Gully Grand Prix** (three-lane racing), **Kaun Feku?** (spoken bluffing), or **Same Soch** (clues and spectrum guessing). Individual play is the default. Same Soch also has optional pair scoring. [Party rules](docs/PARTY_GAMES.md) · [Shooting, racing, motion controls and tournaments](docs/MOTION_AND_TOURNAMENTS.md) · [Ek Jaisa! rules and five tabletop adaptation candidates](docs/OFFLINE_TO_ONLINE.md).
 
-Select **Tournament** in the lobby to choose a playlist and repeat count. Games award cup points by finishing place, with an overall winner after the playlist. Shooting/racing need 2–8 players; spoken party games need 4–8.
+Select **Tournament** in the lobby to choose a playlist and repeat count. Games award cup points by finishing place, with an overall winner after the playlist. Matching/shooting/racing need 2–8 players; spoken party games need 4–8.
 
 The earlier Terrace Tamasha, Rang Rumble and Auto Duo prototypes remain under **Earlier prototypes**. Demo players preview screens and scoring; they cannot replace real people speaking and interpreting clues. Optional tilt uses browser motion sensors over HTTPS, with a permission button where required and touch fallback. Actual gyro feel and haptics still need testing on physical iPhone/Android devices.
 

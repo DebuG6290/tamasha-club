@@ -32,3 +32,20 @@ test('live socket rejects unknown credentials and unapproved origins',async()=>{
     const [,response]=await once(ws,'unexpected-response');assert.equal(response.statusCode,403);response.resume();ws.terminate();
   }}finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));rooms.clear()}
 });
+
+test('Ek Jaisa phones receive only their own card and a single live claim wins on the projector',async()=>{
+  const server=createGameServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const root=`http://127.0.0.1:${server.address().port}`,sockets=[];
+  const post=async(path,data,token)=>{const r=await fetch(root+path,{method:'POST',headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify(data)});assert(r.ok);return r.json()};
+  try{
+    const room=await post('/api/rooms',{}),a=await post(`/api/rooms/${room.code}/join`,{name:'Aadi'}),b=await post(`/api/rooms/${room.code}/join`,{name:'Nisha'}),route=`/api/rooms/${room.code}`;
+    await post(route+'/action',{type:'start',game:'spot'},room.token);
+    const internal=rooms.get(room.code);internal.deadline=Date.now()-1;tickRoom(internal);
+    const connections=[];for(const token of [room.token,a.token,b.token]){const c=await connect(`${root.replace('http','ws')}${route}/socket?token=${token}`);connections.push(c);sockets.push(c.ws);}
+    const [host,phoneA,phoneB]=connections,hostState=(await host.wait(m=>m.type==='state')).state,as=(await phoneA.wait(m=>m.type==='state')).state,bs=(await phoneB.wait(m=>m.type==='state')).state;
+    assert.equal(hostState.private,null);assert.equal(hostState.game.hands,undefined);assert.notDeepEqual(as.private.hand,bs.private.hand);
+    const symbol=as.private.hand.find(s=>as.game.center.includes(s)),claim={type:'spot',symbol,round:as.game.round,epoch:as.game.epoch,seq:1};phoneA.ws.send(JSON.stringify(claim));
+    const result=(await host.wait(m=>m.type==='state'&&m.state.phase==='reveal')).state;assert.equal(result.game.outcome.winner,a.id);assert.equal(result.game.scores[a.id],1);assert.equal(result.game.scores[b.id],0);
+    phoneB.ws.send(JSON.stringify({...claim,symbol:bs.private.hand.find(s=>bs.game.center.includes(s))}));assert.match((await phoneB.wait(m=>m.type==='error')).message,/next choice/);
+    const reload=await(await fetch(root+route+'/state',{headers:{Authorization:`Bearer ${a.token}`}})).json();assert.equal(reload.private.lastSeq,1);assert.deepEqual(reload.private.hand,as.private.hand);
+  }finally{for(const ws of sockets)ws.terminate();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));rooms.clear();}
+});

@@ -2,6 +2,7 @@ import {makeTerrace,resolveTerrace,nextTerrace,arena,collapsing,DIRECTIONS,makeC
 import {isParty,makeParty,partyView,partyAction,advanceParty,partyTimeout,partyBotAction,partySeconds,partyStandings} from './party.mjs';
 import {isArcade,makeArcade,tickArcade,nextArcade,arcadeView,arcadeStandings,arcadeFire,arcadeSteer,arcadeBot} from './arcade.mjs';
 import {makeCup,configureCup,startCup,recordCup,nextCup,cupView} from './tournament.mjs';
+import {makeSpot,spotView,spotAction,advanceSpot,spotSeconds,spotStandings,spotBot} from './spot.mjs';
 const secret=()=>Array.from(crypto.getRandomValues(new Uint8Array(18)),x=>x.toString(16).padStart(2,'0')).join('');
 const randomInt=n=>crypto.getRandomValues(new Uint32Array(1))[0]%n;
 const names=['Nisha','Aadi','Riya','Dev','Meera','Kabir','Isha','Neel'];
@@ -29,6 +30,7 @@ export function view(room,token){const me=room.players.find(p=>p.token===token);
     players:room.players.map(({token,...p})=>p),locked:Object.keys(room.choices),me:me?.id||null,host,results:room.results||null,cup:cupView(room.cup)};
   if(!room.game)return {...base,game:null};
   const g=room.game;
+  if(g.kind==='spot')return {...base,...spotView(g,me)};
   if(isArcade(g.kind))return {...base,game:arcadeView(g),private:me?{lastSeq:g.players.find(p=>p.id===me.id)?.lastSeq}:null};
   if(isParty(g.kind))return {...base,...partyView(g,room.players,me)};
   if(g.kind==='terrace')return {...base,game:{...g},private:me?{choice:room.choices[me.id]||null}:null};
@@ -40,7 +42,8 @@ export function view(room,token){const me=room.players.find(p=>p.token===token);
 }
 export function publish(room){room.version++;room.touched=Date.now();for(const subscriber of room.subscribers)subscriber();}
 function setClock(room,seconds){room.deadline=Date.now()+seconds*1000;room.botAt=Date.now()+1000+randomInt(900)}
-function finish(room){room.phase='results';room.results=isArcade(room.game.kind)?arcadeStandings(room.game):isParty(room.game.kind)?partyStandings(room.game,room.players):standings(room.game,room.players,room.paired);room.deadline=0;recordCup(room.cup,room.game.kind,room.results);publish(room)}
+function finish(room){room.phase='results';room.results=room.game.kind==='spot'?spotStandings(room.game):isArcade(room.game.kind)?arcadeStandings(room.game):isParty(room.game.kind)?partyStandings(room.game,room.players):standings(room.game,room.players,room.paired);room.deadline=0;recordCup(room.cup,room.game.kind,room.results);publish(room)}
+function syncSpot(room){if(room.game.done){finish(room);return;}room.phase=room.game.step==='reveal'?'reveal':'play';setClock(room,spotSeconds(room.game));room.botAt=Date.now()+2500+randomInt(3500);publish(room);}
 function syncParty(room,previousEpoch=-1){
   if(room.game.done){finish(room);return}
   room.phase=room.game.step==='reveal'?'reveal':'play';
@@ -49,15 +52,16 @@ function syncParty(room,previousEpoch=-1){
 }
 export function startGame(room,kind=room.selected){
   if(room.players.length<2)throw Error('Add at least two players or try demo players');
-  if(!['bluff','same','ducks','race','terrace','rang','auto'].includes(kind))throw Error('Unknown game');
-  const game=isArcade(kind)?makeArcade(room.players,kind):isParty(kind)?makeParty(room.players,kind,Math.random,room.paired):kind==='terrace'?makeTerrace(room.players):kind==='rang'?makeCards(room.players):makeAuto(room.players);
+  if(!['spot','bluff','same','ducks','race','terrace','rang','auto'].includes(kind))throw Error('Unknown game');
+  const game=kind==='spot'?makeSpot(room.players):isArcade(kind)?makeArcade(room.players,kind):isParty(kind)?makeParty(room.players,kind,Math.random,room.paired):kind==='terrace'?makeTerrace(room.players):kind==='rang'?makeCards(room.players):makeAuto(room.players);
   room.selected=kind;room.game=game;room.results=null;room.choices={};room.phase='play';room.paused=false;room.started=Date.now();setClock(room,kind==='rang'?20:kind==='auto'?18:12);publish(room);
   if(isParty(kind))syncParty(room);
+  if(kind==='spot')syncSpot(room);
   if(isArcade(kind)){room.deadline=game.startsAt;room.aims={};room.snapshotAt=0;publish(room)}
 }
 export function hostAction(room,action){
   if(action.type==='bots')return addBots(room);
-  if(action.type==='select'){if(room.phase!=='lobby')throw Error('Return to the lobby first');if(!['bluff','same','ducks','race','terrace','rang','auto'].includes(action.game))throw Error('Unknown game');room.selected=action.game;publish(room);return}
+  if(action.type==='select'){if(room.phase!=='lobby')throw Error('Return to the lobby first');if(!['spot','bluff','same','ducks','race','terrace','rang','auto'].includes(action.game))throw Error('Unknown game');room.selected=action.game;publish(room);return}
   if(action.type==='cup-config'){if(room.phase!=='lobby')throw Error('Set up tournaments in the lobby.');configureCup(room.cup,action);if(room.cup.enabled)room.paired=false;publish(room);return}
   if(action.type==='cup-next'){
     if(room.phase!=='results')throw Error('Finish this match first.');const kind=nextCup(room.cup);if(kind)startGame(room,kind);else publish(room);return;
@@ -78,13 +82,18 @@ export function hostAction(room,action){
   }
   if(action.type==='lobby'){room.phase='lobby';room.game=null;room.choices={};room.results=null;room.paused=false;room.cup.active=false;room.cup.completed=false;publish(room);return}
   if(action.type==='pause'){if(!['play','reveal'].includes(room.phase))throw Error('No active round');room.paused=!room.paused;
-    if(room.paused){room.remaining=Math.max(0,room.deadline-Date.now());room.pausedAt=Date.now()}else {room.deadline=Date.now()+(room.remaining||1000);if(isArcade(room.game?.kind)){const delay=Date.now()-room.pausedAt;for(const key of ['startsAt','endsAt','lastTick'])room.game[key]+=delay;for(const p of room.game.players)for(const key of ['boostUntil','stunUntil','lastShot','lastSteer','finishedAt'])if(p[key])p[key]+=delay;}}publish(room);return}
+    if(room.paused){room.remaining=Math.max(0,room.deadline-Date.now());room.pausedAt=Date.now()}else {room.deadline=Date.now()+(room.remaining||1000);if(isArcade(room.game?.kind)){const delay=Date.now()-room.pausedAt;for(const key of ['startsAt','endsAt','lastTick'])room.game[key]+=delay;for(const p of room.game.players)for(const key of ['boostUntil','stunUntil','lastShot','lastSteer','finishedAt'])if(p[key])p[key]+=delay;}if(room.game?.kind==='spot'){const delay=Date.now()-room.pausedAt;for(const id of Object.keys(room.game.blocked))room.game.blocked[id]+=delay;}}publish(room);return}
   if(action.type==='paired'){if(room.phase!=='lobby')throw Error('Change scoring in the lobby');if(room.cup.enabled)throw Error('Tournaments use individual scores.');room.paired=Boolean(action.value);publish(room);return}
   if(action.type==='remove'){if(room.phase!=='lobby')throw Error('Remove players in the lobby');room.players=room.players.filter(p=>p.id!==action.id);publish(room);return}
   throw Error('Unknown host action');
 }
 export function playerAction(room,player,action){
   if(room.phase!=='play'||room.paused)throw Error(room.paused?'The host paused the game':'Wait for the next choice');
+  if(room.game.kind==='spot'){
+    if(Date.now()>=room.deadline){advanceSpot(room.game,room.players);syncSpot(room);throw Error('Time is up. Look for the next card.');}
+    const previous=room.game.epoch,changed=spotAction(room.game,player.id,action);
+    if(room.game.epoch!==previous)syncSpot(room);else if(changed)publish(room);return;
+  }
   if(isArcade(room.game.kind)){
     const g=room.game;if(action.round!==g.round)throw Error('That heat has ended.');
     if(action.type==='aim'){
@@ -148,6 +157,11 @@ export function tickRoom(room,now=Date.now()){
   for(const [code] of [[room.code]]){
     if(now-room.touched>3*60*60*1000&&!room.subscribers.size){rooms.delete(code);continue}
     if(room.paused||!['play','reveal'].includes(room.phase))continue;
+    if(room.game.kind==='spot'){
+      if(now>=room.deadline){advanceSpot(room.game,room.players);syncSpot(room);}
+      else if(room.game.step==='search'&&now>=room.botAt){if(spotBot(room.game,room.players,now))syncSpot(room);else room.botAt=now+1000;}
+      continue;
+    }
     if(isArcade(room.game.kind)){
       const g=room.game;
       if(g.step==='reveal'){if(room.players.every(p=>p.bot)&&now>=room.deadline){nextArcade(g,now);if(g.done)finish(room);else {room.phase='play';room.deadline=g.startsAt;publish(room)}}continue;}

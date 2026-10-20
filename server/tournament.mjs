@@ -1,6 +1,6 @@
-export const CUP_GAMES=['bluff','same','ducks','race'];
+export const CUP_GAMES=['bluff','same','ducks','race','spot'];
 const POINTS=[10,8,6,5,4,3,2,1];
-export const makeCup=()=>({enabled:false,games:['ducks','race','bluff','same'],repeats:1,active:false,completed:false,index:0,playlist:[],matches:[],scores:{}});
+export const makeCup=()=>({enabled:false,games:['ducks','race','spot','bluff','same'],repeats:1,active:false,completed:false,index:0,playlist:[],matches:[],scores:{}});
 export function configureCup(cup,a){
   if(typeof a.enabled==='boolean')cup.enabled=a.enabled;
   if(a.games!==undefined){if(!Array.isArray(a.games)||!a.games.length||a.games.some(k=>!CUP_GAMES.includes(k)))throw Error('Choose at least one tournament game.');cup.games=[...new Set(a.games)];}
@@ -8,7 +8,7 @@ export function configureCup(cup,a){
 }
 export function startCup(cup,players){
   const playlist=Array.from({length:cup.repeats},()=>cup.games).flat();if(playlist.length<2)throw Error('A tournament needs at least two matches.');
-  if(players.length<(playlist.includes('bluff')||playlist.includes('same')?4:2))throw Error('Bring four players for the selected party games, or choose only shooting and racing.');
+  if(players.length<(playlist.includes('bluff')||playlist.includes('same')?4:2))throw Error('Bring four players for the selected clue games, or choose shooting, racing and Ek Jaisa!.');
   Object.assign(cup,{active:true,completed:false,index:0,playlist,matches:[],scores:Object.fromEntries(players.map(p=>[p.id,0]))});return playlist[0];
 }
 export function recordCup(cup,kind,rows){
