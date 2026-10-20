@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {makeParty,partyView,samePoints} from '../server/party.mjs';
 import {createRoom,joinRoom,addBots,startGame,playerAction,hostAction,tickRoom,view,rooms} from '../server/rooms.mjs';
 
-function fixture(kind,count=4){const r=createRoom();for(let i=0;i<count;i++)joinRoom(r,`Guest ${i+1}`,Math.floor(i/2));startGame(r,kind);return r;}
+function fixture(kind,count=4,paired=false){const r=createRoom();for(let i=0;i<count;i++)joinRoom(r,`Guest ${i+1}`,Math.floor(i/2));r.paired=paired;startGame(r,kind);return r;}
 function send(r,p,a){const g=r.game;return playerAction(r,p,{...a,round:g.round,step:g.step,epoch:g.epoch});}
 function next(r){return hostAction(r,{type:'party-next',round:r.game.round,epoch:r.game.epoch});}
 function voting(r){for(const p of r.players)send(r,p,{type:'ready'});while(r.game.step==='clues')send(r,r.players.find(p=>p.id===r.game.order[r.game.clueIndex]),{type:'clue-done'});assert.equal(r.game.step,'discuss');next(r);}
@@ -12,7 +12,7 @@ function accuse(r,id){for(const p of r.players)send(r,p,{type:'vote',target:p.id
 test('party games require four players; Same Soch rejects incomplete pairs',()=>{
   const ps=Array.from({length:3},(_,i)=>({id:String(i),team:i}));
   assert.throws(()=>makeParty(ps,'bluff'),/four players/);
-  assert.throws(()=>makeParty([...ps,{id:'3',team:0}],'same'),/complete pairs/);
+  assert.throws(()=>makeParty([...ps,{id:'3',team:0}],'same',Math.random,true),/complete pairs/);
 });
 test('secret roles, word selection, targets and other choices stay off the projector and rival phones',()=>{
   const r=fixture('bluff');const host=view(r,r.hostToken),g=r.game;
@@ -53,7 +53,7 @@ test('failed last guess rewards every informed player; next round removes the pr
   assert.throws(()=>playerAction(r,r.players[0],stale),/moment has passed/);rooms.delete(r.code);
 });
 test('Same Soch averages rival guesses, awards distance bands and reveals only at the end',()=>{
-  const r=fixture('same');r.game.target=50;const giver=r.players.find(p=>p.id===r.game.giver),partner=r.players.find(p=>p.team===giver.team&&p.id!==giver.id),rivals=r.players.filter(p=>p.team!==giver.team);
+  const r=fixture('same',4,true);r.game.target=50;const giver=r.players.find(p=>p.id===r.game.giver),partner=r.players.find(p=>p.team===giver.team&&p.id!==giver.id),rivals=r.players.filter(p=>p.team!==giver.team);
   assert.throws(()=>send(r,partner,{type:'clue-done'}),/friend is giving/);
   send(r,giver,{type:'clue-done'});assert.throws(()=>send(r,giver,{type:'estimate',value:50}),/know the target/);
   assert.throws(()=>send(r,partner,{type:'estimate',value:101}),/0 to 100/);

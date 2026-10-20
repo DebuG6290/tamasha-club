@@ -32,17 +32,17 @@ export const SCALES = [
 export const isParty = kind => kind==='bluff'||kind==='same';
 const choose=(items,random)=>items[Math.min(items.length-1,Math.floor(random()*items.length))];
 function step(g,name){g.step=name;g.epoch++;g.inputs={};}
-export function makeParty(players,kind,random=Math.random){
+export function makeParty(players,kind,random=Math.random,paired=false){
   if(!isParty(kind))throw Error('Unknown party game');
   if(players.length<4)throw Error('Bring at least four players, or add demo players.');
   const teams=[...new Set(players.map(p=>p.team))];
-  if(kind==='same'&&teams.some(t=>players.filter(p=>p.team===t).length!==2))throw Error('Same Soch needs complete pairs. Choose two people in each pair.');
-  const g={kind,round:1,epoch:0,step:'',inputs:{},scores:Object.fromEntries(players.map(p=>[p.id,0])),outcome:null,done:false};
+  if(kind==='same'&&paired&&teams.some(t=>players.filter(p=>p.team===t).length!==2))throw Error('Pair mode needs complete pairs. Switch to individual mode or fill the pairs.');
+  const g={kind,paired:kind==='same'&&paired,round:1,epoch:0,step:'',inputs:{},scores:Object.fromEntries(players.map(p=>[p.id,0])),outcome:null,done:false};
   if(kind==='bluff'){
     g.roleOrder=shuffled(players.map(p=>p.id),random);g.total=players.length;
     g.cards=shuffled(TOPICS.flatMap(topic=>topic.words.map((word,i)=>({topic,word,hint:topic.clues[i]}))),random).slice(0,g.total);
   }else{
-    const order=shuffled(teams,random);g.schedule=[0,1].flatMap(role=>order.map(team=>({team,giver:players.filter(p=>p.team===team)[role].id})));
+    const order=shuffled(teams,random);g.schedule=paired?[0,1].flatMap(role=>order.map(team=>({team,giver:players.filter(p=>p.team===team)[role].id}))):shuffled(players,random).map(p=>({team:p.team,giver:p.id}));
     g.total=g.schedule.length;g.cards=shuffled(SCALES,random).slice(0,g.total).map(scale=>({scale,target:10+Math.floor(random()*81)}));
     g.teamScores=Object.fromEntries(teams.map(t=>[t,0]));
   }
@@ -75,11 +75,20 @@ function countVotes(g){
 export function samePoints(distance){return distance<=3?5:distance<=10?3:distance<=25?1:0;}
 function endSame(g,players,skipped=false){
   const guesses=Object.entries(g.inputs).map(([id,v])=>({id,value:v.value}));const rows=[];
+  if(!g.paired){
+    for(const p of players.filter(p=>p.id!==g.giver)){
+      const v=guesses.find(v=>v.id===p.id),value=skipped||!v?null:v.value,distance=value===null?null:Math.abs(value-g.target),points=distance===null?0:samePoints(distance);
+      g.scores[p.id]+=points;rows.push({id:p.id,ids:[p.id],team:p.team,value,distance,points,guesses:v?[v]:[]});
+    }
+    const bonus=Math.round(rows.reduce((sum,r)=>sum+r.points,0)/rows.length);g.scores[g.giver]+=bonus;
+    const giver=players.find(p=>p.id===g.giver);rows.unshift({id:g.giver,ids:[g.giver],team:giver.team,value:null,distance:null,points:bonus,guesses:[],giver:true});
+    g.outcome={target:g.target,rows,skipped};step(g,'reveal');return;
+  }
   for(const team of Object.keys(g.teamScores).map(Number)){
     const ps=players.filter(p=>p.team===team&&p.id!==g.giver),submitted=guesses.filter(v=>ps.some(p=>p.id===v.id));
     const value=skipped||!submitted.length?null:Math.round(submitted.reduce((n,v)=>n+v.value,0)/submitted.length);
     const distance=value===null?null:Math.abs(value-g.target),points=distance===null?0:samePoints(distance);
-    g.teamScores[team]+=points;rows.push({team,value,distance,points,guesses:submitted});
+    g.teamScores[team]+=points;rows.push({id:String(team),ids:players.filter(p=>p.team===team).map(p=>p.id),team,value,distance,points,guesses:submitted});
   }
   g.outcome={target:g.target,rows,skipped};step(g,'reveal');
 }
@@ -153,7 +162,7 @@ export function partyBotAction(g,players){
   if(!p)return false;partyAction(g,players,p.id,{...a,round:g.round,epoch:g.epoch,step:g.step});return true;
 }
 export function partyView(g,players,me){
-  const game={kind:g.kind,round:g.round,total:g.total,step:g.step,epoch:g.epoch,scores:{...g.scores},outcome:g.outcome};
+  const game={kind:g.kind,paired:g.paired,round:g.round,total:g.total,step:g.step,epoch:g.epoch,scores:{...g.scores},outcome:g.outcome};
   let priv=null;
   if(g.kind==='bluff'){
     Object.assign(game,{topic:g.card.topic.label,words:g.card.topic.words,order:g.order,speaker:g.order[g.clueIndex]||null,clues:g.clues,accused:g.step==='guess'?g.impostor:null});
@@ -165,6 +174,6 @@ export function partyView(g,players,me){
   return {game,private:priv,locked:Object.keys(g.inputs)};
 }
 export function partyStandings(g,players){
-  const rows=g.kind==='bluff'?players.map(p=>({id:p.id,ids:[p.id],score:g.scores[p.id],detail:'Bluffer wins +3 · each catcher wins +2'})):Object.entries(g.teamScores).map(([team,score])=>({id:team,ids:players.filter(p=>p.team===Number(team)).map(p=>p.id),score,detail:'Points from every pair’s clues'}));
+  const rows=g.kind==='bluff'||!g.paired?players.map(p=>({id:p.id,ids:[p.id],score:g.scores[p.id],detail:g.kind==='bluff'?'Bluffer wins +3 · each catcher wins +2':'Guess points + clue bonuses'})):Object.entries(g.teamScores).map(([team,score])=>({id:team,ids:players.filter(p=>p.team===Number(team)).map(p=>p.id),score,detail:'Points from every pair’s clues'}));
   rows.sort((a,b)=>b.score-a.score);rows.forEach((r,i)=>r.rank=i&&r.score===rows[i-1].score?rows[i-1].rank:i+1);return rows;
 }

@@ -2,9 +2,11 @@
 
 Cartoon party games for one shared screen and everyone's phones. Open the host screen on a laptop connected to a projector or TV; players scan its QR code or enter the four-letter room code. No app download or accounts.
 
-Start with two spoken party games: **Kaun Feku?** (secret-word bluffing, 4–8 people) and **Same Soch** (clues and spectrum guessing, 2–4 pairs). Both use private phone information, a shared reveal, original Indian/Hinglish content and optional event sounds. [Rules and design references](docs/PARTY_GAMES.md).
+Choose **Duck Pop** (tilt/touch aiming), **Gully Grand Prix** (three-lane racing), **Kaun Feku?** (spoken bluffing), or **Same Soch** (clues and spectrum guessing). Individual play is the default. Same Soch also has optional pair scoring. [Party rules](docs/PARTY_GAMES.md) · [Shooting, racing, motion controls and tournaments](docs/MOTION_AND_TOURNAMENTS.md).
 
-The earlier Terrace Tamasha, Rang Rumble and Auto Duo prototypes remain under **Earlier prototypes**. Demo players preview screens and scoring; they cannot replace real people speaking and interpreting clues. Haptics are best-effort and depend on the browser/device.
+Select **Tournament** in the lobby to choose a playlist and repeat count. Games award cup points by finishing place, with an overall winner after the playlist. Shooting/racing need 2–8 players; spoken party games need 4–8.
+
+The earlier Terrace Tamasha, Rang Rumble and Auto Duo prototypes remain under **Earlier prototypes**. Demo players preview screens and scoring; they cannot replace real people speaking and interpreting clues. Optional tilt uses browser motion sensors over HTTPS, with a permission button where required and touch fallback. Actual gyro feel and haptics still need testing on physical iPhone/Android devices.
 
 ## Hosting the whole game (fewest steps)
 

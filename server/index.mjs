@@ -4,6 +4,7 @@ import {stat} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {apiHandler,tick} from './rooms.mjs';
+import {attachLive} from './live.mjs';
 
 const projectRoot=fileURLToPath(new URL('../',import.meta.url));
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.ttf':'font/ttf','.woff2':'font/woff2','.json':'application/json; charset=utf-8','.ico':'image/x-icon'};
@@ -38,7 +39,8 @@ export function createGameServer({publicOrigins=process.env.PUBLIC_ORIGINS||'',s
       if(req.method==='HEAD')res.end();else createReadStream(target).on('error',()=>res.destroy()).pipe(res);
     }catch{res.writeHead(404,{'Content-Type':'text/plain; charset=utf-8'});res.end(appRoute?'Build the game screens with npm run build before starting the server.':'Not found')}
   });
-  const clock=setInterval(()=>tick(),150);clock.unref();server.on('close',()=>clearInterval(clock));
+  attachLive(server,{publicOrigins});
+  const clock=setInterval(()=>tick(),50);clock.unref();server.on('close',()=>clearInterval(clock));
   return server;
 }
 

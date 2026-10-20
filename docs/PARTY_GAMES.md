@@ -1,6 +1,6 @@
 # Two games for the room
 
-Use the same QR lobby and phones. Both party games need at least four people. No typing, microphones or downloads are required. Speak Hindi, English, Hinglish or any shared language.
+Use the same QR lobby and phones. Both party games need at least four people. Individual play is the default; no partner is needed. No typing, microphones or downloads are required. Speak Hindi, English, Hinglish or any shared language.
 
 ## Kaun Feku?
 
@@ -19,12 +19,14 @@ Inspired by the hidden-information/clue dilemma of [The Chameleon](https://bigpo
 
 ## Same Soch
 
-1. Join complete pairs. One partner privately sees a target on a 0–100 spectrum, such as **Light snack → Full meal**.
+1. Each player gets a turn as clue-giver and privately sees a target on a 0–100 spectrum, such as **Light snack → Full meal**.
 2. They say an example aloud that they think belongs at that position. No numbers, percentages, coded signals or pointing at the scale. This is a spoken honour rule, not something the app can automatically police.
-3. Their partner and every rival player slide and lock a guess on their own phones. The clue-giver cannot submit a guess. Individual guesses stay private until the reveal.
-4. The clue-giver's pair uses their partner's estimate. Rival pairs use the rounded average of their submitted estimates. If only one rival partner submits, that estimate counts; no submission means no points.
+3. Everyone else slides and locks a guess on their own phone. The clue-giver cannot submit a guess. Individual guesses stay private until the reveal.
+4. In individual mode each guess scores separately. The clue-giver earns the rounded average of everyone else's guess points (missing guesses count as zero). This rewards a clue other people can interpret.
 5. Within 3 points of the target earns **5**, within 10 earns **3**, within 25 earns **1**. Further away earns zero. Score bands are inclusive.
-6. Reveal target, individual guesses, pair estimates and points together. Both partners give a clue once. Highest pair total wins, with shared ranks for ties.
+6. Reveal target, guesses and points together. Everyone gives a clue once. Highest individual total wins, with shared ranks for ties.
+
+Optional pair mode is available for casual play: join complete pairs before starting. The clue-giver's pair uses their partner's estimate; rival pairs use the rounded average of their submitted guesses. If just one rival partner submits, that estimate counts. Highest pair total wins. Tournament matches use individual scoring.
 
 A missing clue earns no points for that round. In a real group the host controls when the reveal ends. Demo-only rooms advance automatically. There are 32 original scales, shuffled without repetition within a game.
 
