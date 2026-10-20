@@ -28,3 +28,20 @@ test('a Netlify origin can use the Node API only when configured',async()=>withS
   const denied=await request(origin,'/api/rooms',{},null,{Origin:'https://other.example'});assert.equal(denied.status,403);
   const preflight=await fetch(origin+'/api/rooms',{method:'OPTIONS',headers:{Origin:'https://party.example','Access-Control-Request-Headers':'authorization,content-type'}});assert.equal(preflight.status,204);
 }));
+
+test('four phones play a Same Soch round over HTTP without leaking the target',async()=>withServer(async origin=>{
+  const room=(await request(origin,'/api/rooms',{})).data,ps=[];
+  for(let i=0;i<4;i++)ps.push((await request(origin,`/api/rooms/${room.code}/join`,{name:`Phone ${i+1}`,team:Math.floor(i/2)})).data);
+  const route=`/api/rooms/${room.code}`;
+  assert.equal((await request(origin,route+'/action',{type:'start',game:'same'},room.token)).status,200);
+  let state=(await request(origin,route+'/state',null,room.token)).data;assert.equal(state.game.target,undefined);
+  const giver=ps.find(p=>p.id===state.game.giver),privateState=(await request(origin,route+'/state',null,giver.token)).data,target=privateState.private.target;
+  const act=(p,a)=>request(origin,route+'/action',{...a,round:state.game.round,step:state.game.step,epoch:state.game.epoch},p.token);
+  assert.equal((await act(giver,{type:'clue-done'})).status,200);
+  state=(await request(origin,route+'/state',null,room.token)).data;
+  for(const p of ps.filter(p=>p.id!==giver.id))assert.equal((await act(p,{type:'estimate',value:target})).status,200);
+  state=(await request(origin,route+'/state',null,room.token)).data;
+  assert.equal(state.phase,'reveal');assert.equal(state.game.outcome.target,target);assert(state.game.outcome.rows.every(r=>r.points===5));
+  assert.equal((await request(origin,route+'/action',{type:'party-next',round:state.game.round,epoch:state.game.epoch},room.token)).status,200);
+  state=(await request(origin,route+'/state',null,room.token)).data;assert.equal(state.game.round,2);assert.equal(state.game.outcome,null);
+}));

@@ -2,7 +2,9 @@
 
 Cartoon party games for one shared screen and everyone's phones. Open the host screen on a laptop connected to a projector or TV; players scan its QR code or enter the four-letter room code. No app download or accounts.
 
-Three playable prototypes: **Terrace Tamasha**, **Rang Rumble**, and **Auto Duo**, with private phone choices, shared reveals, demo players, rematches and optional sound. Haptics are best-effort and depend on the browser/device.
+Start with two spoken party games: **Kaun Feku?** (secret-word bluffing, 4–8 people) and **Same Soch** (clues and spectrum guessing, 2–4 pairs). Both use private phone information, a shared reveal, original Indian/Hinglish content and optional event sounds. [Rules and design references](docs/PARTY_GAMES.md).
+
+The earlier Terrace Tamasha, Rang Rumble and Auto Duo prototypes remain under **Earlier prototypes**. Demo players preview screens and scoring; they cannot replace real people speaking and interpreting clues. Haptics are best-effort and depend on the browser/device.
 
 ## Hosting the whole game (fewest steps)
 
