@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: original flat 2D cartoon Indian delivery auto-rickshaw sprite for a projector party game, side view facing right. Target composition 800 x 512 landscape.
+Reference role: previously supplied direction-3 reference is style guidance only. Match its clean flat geometric cartoon style, ink navy contours, simple broad colour shapes and restrained expressiveness.
+Subject: one complete friendly Indian auto-rickshaw facing right, warm mustard and coral body, pale cream roof, two clearly readable black wheels, small rear rack carrying exactly three simple colourful gift parcels. Passenger window areas must be open cut-outs with truly transparent pixels for later live character portrait compositing.
+Composition: entire vehicle fully contained with generous transparent padding on every side, nearly orthographic side view, stable clearly separated silhouette.
+Style: polished original 2D cartoon asset, crisp navy outline, flat colours, minimal sparse shading, no texture or photorealism. Graphics should read clearly when small on a projector.
+Background: actual alpha transparency, including external background and open passenger windows.
+Constraints: no humans or mascots, no driver, no road or scenery, no motion trails, no shadows outside vehicle, no text or lettering or numbers, no number-plate writing, no logos, no UI. No 3D lighting, gradients, realistic textures. One sprite only.

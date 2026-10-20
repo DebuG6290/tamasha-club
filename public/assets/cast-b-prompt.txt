@@ -1,0 +1,21 @@
+Use case: illustration-story
+Asset type: production 2D game sprite atlas with real transparent alpha.
+Reference image: selected Terrace Tamasha direction supplied. Use only its charming flat cartoon shape language, dark navy ink arms and legs, expressive eyes, clean silhouettes. Do not reproduce UI, board, type or scenery.
+Create ONE square 2048 by 2048 transparent PNG, EXACTLY FOUR COLUMNS by FOUR ROWS of equal 512 by 512 invisible cells, sixteen full-body sprites. No visible grid. Each sprite centered in its cell, same baseline at cell 84% and same approximate full-body height of 65% of cell, generous clear padding. Absolutely no overlap/cropping into adjacent cells.
+Row 1 (all four cells): lilac scalloped square creature.
+Row 2: peach oval creature with tiny curled black moustache as in reference, not human-coded.
+Row 3: lime angular wedge creature with one tiny bent feather.
+Row 4: sky-blue horizontal bean creature.
+Column 1: neutral or suspicious standing expression, relaxed arms.
+Column 2: anticipation lean, arms poised, determined eyes.
+Column 3: startled contact/recoil, wide surprised eyes, bent limbs but no surrounding particles.
+Column 4: pleased recovery/brush-off, smug gentle smile, one hand brushing body.
+Each row is unmistakably the SAME character across four poses, unchanged body colour, silhouette identity and accessories. Every full body includes both small dark ink arms and both legs/feet. Flat limited colours and simple graphic ink linework, slight charming imperfection, clean crisp edges, one tiny mouth, no glossy highlights, no gradients, no realistic texture. The body itself has no thick outer outline but limbs and facial marks are dark navy. No human hair, no clothes, no gender coding, no extra props.
+Background must be genuine transparent alpha, not white or checkerboard. No text, letters, labels, numerals, logos, visible grid, ground shadows, drop shadows, ambient lighting or backdrop.
+
+TARGETED CORRECTION PROMPT:
+Use case: precise-object-edit. Edit target: the supplied transparent character atlas. Keep all sixteen identities and pose expressions and flat cartoon art style. Repair ONLY layout spacing.
+Make a SQUARE transparent PNG sprite atlas of EXACTLY 4 columns × 4 rows, equal square cells. Target 2048×2048. The application will crop every quarter of width and every quarter of height, so no sprite pixel may touch these invisible boundaries.
+Reduce every sprite's scale by 25% compared with the supplied atlas. Each character INCLUDING all limbs, feather and feet must fit comfortably inside the central 65% of its own cell. Every cell has at least 15% completely clear transparent margin on all four sides. All four rows use equal spacing. Every cell baseline is 80% down its cell. The top row feet MUST end well above the first 25%-height divider. Do not let feet from one row enter the row below. Do not add cell border lines.
+Rows unchanged: 1 lilac scalloped square, 2 peach oval with curled moustache, 3 lime wedge with bent feather, 4 sky blue horizontal bean. Columns unchanged: 1 neutral suspicious; 2 anticipation lean; 3 startled recoil; 4 pleased brush-off.
+No text, labels, grid, backdrop, ground or shadows. Preserve genuine transparent alpha and crisp edges. No random specks or stray pixels. All sixteen entire bodies visible.

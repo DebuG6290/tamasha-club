@@ -1,0 +1,22 @@
+{
+  "name": "tamasha-club",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "node server/index.mjs",
+    "preview": "vite preview",
+    "test": "node --test tests/engine.test.mjs tests/session.test.mjs tests/http.test.mjs"
+  },
+  "engines": { "node": "24.x" },
+  "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "@vitejs/plugin-react": "5.0.4",
+    "qrcode": "^1.5.4",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "vite": "6.4.2"
+  }
+}

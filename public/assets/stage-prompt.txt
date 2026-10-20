@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: quiet full-frame landscape background illustration for a clean 2D cartoon projector party game, 1920 x 1080 composition.
+Input image: the supplied image is a style reference only. Do not reproduce its game board, players, HUD or text.
+Primary request: match the reference's confident clean flat cartoon graphic style, ivory paper-colour field and sparse navy outlines. Create only decorative margin artwork.
+Composition: extremely spacious nearly solid ivory #fffbee background; huge ABSOLUTELY EMPTY center from x25–75%, y10–90% for live geometry. Entire upper 15% empty for scoreboard. Lower center empty for phase text.
+Decoration: very sparse pale blue thin grid marks only at far outer edges. Small ink clothesline and two simple graphic BLUE garments at far left around middle height, fully within leftmost 18%. One small officious blue-grey pigeon holding a clipboard at far right around middle height, fully within rightmost 15%; pigeon small and restrained, friendly deadpan expression. Quiet low blue rooftop silhouettes only at bottom corners.
+Style/medium: premium minimal flat 2D cartoon, few crisp contours, broad simple colour shapes, minimal shading. Palette ivory, navy, muted sky blue, pigeon grey, tiny orange beak only. Keep surface almost perfectly flat and clean.
+Constraints: no board, no tiles, no game players, no human or geometric mascot characters, no stars, no lettering, no numbers, no logos, no buttons, no UI, no realistic texture, no gradients, no 3D realism. Garments and pigeon are small supporting decoration; central area completely blank. One image only.
