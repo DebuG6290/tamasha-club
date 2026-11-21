@@ -3,6 +3,14 @@ import {isParty,makeParty,partyView,partyAction,advanceParty,partyTimeout,partyB
 import {isArcade,makeArcade,tickArcade,nextArcade,arcadeView,arcadeStandings,arcadeFire,arcadeSteer,arcadeBot} from './arcade.mjs';
 import {makeCup,configureCup,startCup,recordCup,nextCup,cupView} from './tournament.mjs';
 import {makeSpot,spotView,spotAction,advanceSpot,spotSeconds,spotStandings,spotBot} from './spot.mjs';
+import {makeBazaar,bazaarView,bazaarAction,advanceBazaar,bazaarSeconds,bazaarStandings,bazaarBot} from './bazaar.mjs';
+import {makePressure,pressureView,pressureAction,advancePressure,pressureSeconds,pressureStandings,pressureBot} from './pressure.mjs';
+const social={
+  bazaar:{make:makeBazaar,view:bazaarView,action:bazaarAction,advance:advanceBazaar,seconds:bazaarSeconds,standings:bazaarStandings,bot:(g,players)=>bazaarBot(g,players)},
+  pressure:{make:makePressure,view:pressureView,action:pressureAction,advance:advancePressure,seconds:pressureSeconds,standings:pressureStandings,bot:pressureBot},
+};
+const socialFor=kind=>Object.hasOwn(social,kind)?social[kind]:null;
+const validGame=kind=>Boolean(socialFor(kind))||['spot','bluff','same','ducks','race','terrace','rang','auto'].includes(kind);
 const secret=()=>Array.from(crypto.getRandomValues(new Uint8Array(18)),x=>x.toString(16).padStart(2,'0')).join('');
 const randomInt=n=>crypto.getRandomValues(new Uint32Array(1))[0]%n;
 const names=['Nisha','Aadi','Riya','Dev','Meera','Kabir','Isha','Neel'];
@@ -26,10 +34,16 @@ export function addBots(room){if(room.phase!=='lobby')throw Error('Return to the
   publish(room);
 }
 export function view(room,token){const me=room.players.find(p=>p.token===token);const host=room.hostToken===token;
-  const base={code:room.code,selected:room.selected,paired:room.paired,phase:room.phase,paused:room.paused,deadline:room.deadline||0,serverTime:Date.now(),version:room.version,
+  const base={code:room.code,selected:room.selected,paired:room.paired,phase:room.phase,paused:room.paused,deadline:room.deadline||0,serverTime:Date.now(),version:room.version*2,
     players:room.players.map(({token,...p})=>p),locked:Object.keys(room.choices),me:me?.id||null,host,results:room.results||null,cup:cupView(room.cup)};
   if(!room.game)return {...base,game:null};
   const g=room.game;
+  if(socialFor(g.kind)){
+    const screen=socialFor(g.kind).view(g,me);
+    // A private pressure lock can refresh its controller without advancing the public version.
+    const ownLock=g.kind==='pressure'&&Boolean(screen.private?.choice);
+    return {...base,...screen,version:base.version+Number(ownLock)};
+  }
   if(g.kind==='spot')return {...base,...spotView(g,me)};
   if(isArcade(g.kind))return {...base,game:arcadeView(g),private:me?{lastSeq:g.players.find(p=>p.id===me.id)?.lastSeq}:null};
   if(isParty(g.kind))return {...base,...partyView(g,room.players,me)};
@@ -42,8 +56,20 @@ export function view(room,token){const me=room.players.find(p=>p.token===token);
 }
 export function publish(room){room.version++;room.touched=Date.now();for(const subscriber of room.subscribers)subscriber();}
 function setClock(room,seconds){room.deadline=Date.now()+seconds*1000;room.botAt=Date.now()+1000+randomInt(900)}
-function finish(room){room.phase='results';room.results=room.game.kind==='spot'?spotStandings(room.game):isArcade(room.game.kind)?arcadeStandings(room.game):isParty(room.game.kind)?partyStandings(room.game,room.players):standings(room.game,room.players,room.paired);room.deadline=0;recordCup(room.cup,room.game.kind,room.results);publish(room)}
+function finish(room){room.phase='results';room.results=socialFor(room.game.kind)?socialFor(room.game.kind).standings(room.game):room.game.kind==='spot'?spotStandings(room.game):isArcade(room.game.kind)?arcadeStandings(room.game):isParty(room.game.kind)?partyStandings(room.game,room.players):standings(room.game,room.players,room.paired);room.deadline=0;recordCup(room.cup,room.game.kind,room.results);publish(room)}
 function syncSpot(room){if(room.game.done){finish(room);return;}room.phase=room.game.step==='reveal'?'reveal':'play';setClock(room,spotSeconds(room.game));room.botAt=Date.now()+2500+randomInt(3500);publish(room);}
+function syncSocial(room){
+  const g=room.game,mode=socialFor(g.kind);
+  if(g.done){finish(room);return;}
+  room.phase=g.step==='reveal'?'reveal':'play';
+  setClock(room,mode.seconds(g));
+  if(Number.isFinite(g.endsAt))room.deadline=g.endsAt;
+  publish(room);
+}
+function advanceSocial(room,now=Date.now()){
+  socialFor(room.game.kind).advance(room.game,room.players,Math.random,now);
+  syncSocial(room);
+}
 function syncParty(room,previousEpoch=-1){
   if(room.game.done){finish(room);return}
   room.phase=room.game.step==='reveal'?'reveal':'play';
@@ -52,16 +78,18 @@ function syncParty(room,previousEpoch=-1){
 }
 export function startGame(room,kind=room.selected){
   if(room.players.length<2)throw Error('Add at least two players or try demo players');
-  if(!['spot','bluff','same','ducks','race','terrace','rang','auto'].includes(kind))throw Error('Unknown game');
-  const game=kind==='spot'?makeSpot(room.players):isArcade(kind)?makeArcade(room.players,kind):isParty(kind)?makeParty(room.players,kind,Math.random,room.paired):kind==='terrace'?makeTerrace(room.players):kind==='rang'?makeCards(room.players):makeAuto(room.players);
-  room.selected=kind;room.game=game;room.results=null;room.choices={};room.phase='play';room.paused=false;room.started=Date.now();setClock(room,kind==='rang'?20:kind==='auto'?18:12);publish(room);
+  if(!validGame(kind))throw Error('Unknown game');
+  const mode=socialFor(kind);
+  const game=mode?mode.make(room.players):kind==='spot'?makeSpot(room.players):isArcade(kind)?makeArcade(room.players,kind):isParty(kind)?makeParty(room.players,kind,Math.random,room.paired):kind==='terrace'?makeTerrace(room.players):kind==='rang'?makeCards(room.players):makeAuto(room.players);
+  if(mode)game.epoch+=room.version;
+  room.selected=kind;room.game=game;room.results=null;room.choices={};room.phase='play';room.paused=false;room.started=Date.now();if(mode){room.paired=false;syncSocial(room);return;}setClock(room,kind==='rang'?20:kind==='auto'?18:12);publish(room);
   if(isParty(kind))syncParty(room);
   if(kind==='spot')syncSpot(room);
   if(isArcade(kind)){room.deadline=game.startsAt;room.aims={};room.snapshotAt=0;publish(room)}
 }
 export function hostAction(room,action){
   if(action.type==='bots')return addBots(room);
-  if(action.type==='select'){if(room.phase!=='lobby')throw Error('Return to the lobby first');if(!['spot','bluff','same','ducks','race','terrace','rang','auto'].includes(action.game))throw Error('Unknown game');room.selected=action.game;publish(room);return}
+  if(action.type==='select'){if(room.phase!=='lobby')throw Error('Return to the lobby first');if(!validGame(action.game))throw Error('Unknown game');room.selected=action.game;publish(room);return}
   if(action.type==='cup-config'){if(room.phase!=='lobby')throw Error('Set up tournaments in the lobby.');configureCup(room.cup,action);if(room.cup.enabled)room.paired=false;publish(room);return}
   if(action.type==='cup-next'){
     if(room.phase!=='results')throw Error('Finish this match first.');const kind=nextCup(room.cup);if(kind)startGame(room,kind);else publish(room);return;
@@ -70,6 +98,11 @@ export function hostAction(room,action){
     if(!isArcade(room.game?.kind)||room.phase!=='reveal'||room.paused)throw Error('Finish this heat first.');
     if(action.round!==room.game.round||action.epoch!==room.game.epoch)throw Error('The heat has already moved on.');
     nextArcade(room.game);if(room.game.done)finish(room);else {room.phase='play';room.deadline=room.game.startsAt;publish(room)}return;
+  }
+  if(action.type==='social-next'){
+    if(room.game?.kind!=='bazaar'||room.phase!=='reveal'||room.paused)throw Error('Finish this round first.');
+    if(action.epoch!==room.game.epoch||action.round!==room.game.round)throw Error('The round has already moved on.');
+    advanceSocial(room);return;
   }
   if(action.type==='party-next'){
     if(!isParty(room.game?.kind)||!['play','reveal'].includes(room.phase)||room.paused)throw Error('No active party round.');
@@ -82,13 +115,23 @@ export function hostAction(room,action){
   }
   if(action.type==='lobby'){room.phase='lobby';room.game=null;room.choices={};room.results=null;room.paused=false;room.cup.active=false;room.cup.completed=false;publish(room);return}
   if(action.type==='pause'){if(!['play','reveal'].includes(room.phase))throw Error('No active round');room.paused=!room.paused;
-    if(room.paused){room.remaining=Math.max(0,room.deadline-Date.now());room.pausedAt=Date.now()}else {room.deadline=Date.now()+(room.remaining||1000);if(isArcade(room.game?.kind)){const delay=Date.now()-room.pausedAt;for(const key of ['startsAt','endsAt','lastTick'])room.game[key]+=delay;for(const p of room.game.players)for(const key of ['boostUntil','stunUntil','lastShot','lastSteer','finishedAt'])if(p[key])p[key]+=delay;}if(room.game?.kind==='spot'){const delay=Date.now()-room.pausedAt;for(const id of Object.keys(room.game.blocked))room.game.blocked[id]+=delay;}}publish(room);return}
+    if(room.paused){room.remaining=Math.max(0,room.deadline-Date.now());room.pausedAt=Date.now()}else {room.deadline=Date.now()+(room.remaining||1000);if(socialFor(room.game?.kind)&&Number.isFinite(room.game.endsAt))room.game.endsAt=room.deadline;if(isArcade(room.game?.kind)){const delay=Date.now()-room.pausedAt;for(const key of ['startsAt','endsAt','lastTick'])room.game[key]+=delay;for(const p of room.game.players)for(const key of ['boostUntil','stunUntil','lastShot','lastSteer','finishedAt'])if(p[key])p[key]+=delay;}if(room.game?.kind==='spot'){const delay=Date.now()-room.pausedAt;for(const id of Object.keys(room.game.blocked))room.game.blocked[id]+=delay;}}publish(room);return}
   if(action.type==='paired'){if(room.phase!=='lobby')throw Error('Change scoring in the lobby');if(room.cup.enabled)throw Error('Tournaments use individual scores.');room.paired=Boolean(action.value);publish(room);return}
   if(action.type==='remove'){if(room.phase!=='lobby')throw Error('Remove players in the lobby');room.players=room.players.filter(p=>p.id!==action.id);publish(room);return}
   throw Error('Unknown host action');
 }
 export function playerAction(room,player,action){
   if(room.phase!=='play'||room.paused)throw Error(room.paused?'The host paused the game':'Wait for the next choice');
+  const mode=socialFor(room.game.kind);
+  if(mode){
+    const now=Date.now();
+    if(now>=room.deadline){advanceSocial(room,now);throw Error('Time is up. Check the current screen.');}
+    const previous=room.game.epoch;
+    const changed=mode.action(room.game,player.id,action,now);
+    if(room.game.epoch!==previous)syncSocial(room);
+    else if(changed!==false){if(room.game.kind==='pressure')room.touched=now;else publish(room);}
+    return;
+  }
   if(room.game.kind==='spot'){
     if(Date.now()>=room.deadline){advanceSpot(room.game,room.players);syncSpot(room);throw Error('Time is up. Look for the next card.');}
     const previous=room.game.epoch,changed=spotAction(room.game,player.id,action);
@@ -157,6 +200,18 @@ export function tickRoom(room,now=Date.now()){
   for(const [code] of [[room.code]]){
     if(now-room.touched>3*60*60*1000&&!room.subscribers.size){rooms.delete(code);continue}
     if(room.paused||!['play','reveal'].includes(room.phase))continue;
+    const mode=socialFor(room.game.kind);
+    if(mode){
+      if(now>=room.deadline){advanceSocial(room,now);}
+      else if(room.phase==='play'&&now>=room.botAt){
+        const previous=room.game.epoch;
+        if(mode.bot(room.game,room.players,now)){
+          if(room.game.epoch!==previous)syncSocial(room);else if(room.game.kind!=='pressure')publish(room);
+        }
+        room.botAt=now+400+randomInt(250);
+      }
+      continue;
+    }
     if(room.game.kind==='spot'){
       if(now>=room.deadline){advanceSpot(room.game,room.players);syncSpot(room);}
       else if(room.game.step==='search'&&now>=room.botAt){if(spotBot(room.game,room.players,now))syncSpot(room);else room.botAt=now+1000;}
